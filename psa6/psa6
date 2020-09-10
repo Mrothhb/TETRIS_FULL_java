@@ -1,0 +1,181 @@
+import javafx.application.*;
+import javafx.scene.control.*;
+import javafx.scene.*;
+import javafx.scene.paint.*;
+import javafx.scene.shape.*;
+import javafx.scene.layout.*;
+import javafx.stage.*;
+import javafx.event.*;
+import javafx.scene.input.*;
+import javafx.scene.text.*;
+import javafx.geometry.*;
+import java.util.*;
+import java.io.*;
+import javafx.scene.media.*;
+
+public class GuiTetris extends Application {
+
+    private static final int PADDING = 10;
+    private static final int TILE_GAP = 2;
+    // TODO add more constants  
+
+    private Tetris tetris;
+    private GridPane pane;
+    private MyKeyHandler myKeyHandler;
+    public  Rectangle[][] grid = new Rectangle[20][10];
+    public Rectangle[][] piece;
+    public String linesCleared;
+    private Label title;
+    private Label lines;
+
+    // TODO add more instance variables 
+
+    @Override
+    public void start(Stage primaryStage) {
+        this.tetris = new Tetris();
+
+        // Comment out if needed
+        //startMusic();
+
+        pane = new GridPane();
+        pane.setAlignment(Pos.CENTER);
+        pane.setPadding(new Insets(PADDING,PADDING,PADDING,PADDING));
+        pane.setStyle("-fx-background-color: rgb(255,255,255)");
+        pane.setHgap(TILE_GAP); 
+        pane.setVgap(TILE_GAP);
+
+      
+        // TODO initialize GUI elements here
+        //
+        piece = new Rectangle[tetris.activePiece.tiles.length]
+          [tetris.activePiece.tiles.length];
+        title = new Label("Tetris");
+        lines = new Label("" + tetris.linesCleared);
+        pane.add(lines,0,1);
+
+        pane.add(title,0,0,4,2);
+
+
+        //GridPane.setHalignment(title, HPos.CENTER);
+       // Text lines = new Text(linesCleared);
+        //GridPane.setHalignment(lines, HPos.RIGHT);
+       // pane.add(lines, 1,0);
+        
+        /*
+        for(int k = 0; k<tetris.activePiece.tiles.length; k++){
+          for(int l = 0; l<tetris.activePiece.tiles.length;l++){
+            if (tetris.activePiece.tiles[k][l] == 0)
+              piece[k][l] = new Rectangle(25,25, Color.GRAY);
+            else 
+              piece[k][l] = new Rectangle(25,25, Color.BLUE);
+             
+            pane.add(piece[k][l], l, k);    
+               
+          }
+        }
+        */
+
+        for(int i = 0; i<20;i++){
+          for(int j = 0; j<10; j++){
+            grid[i][j] = new Rectangle(25, 25, Color.GRAY);
+            int newRow = i + 4;
+            pane.add(grid[i][j], j, newRow);
+         
+          }
+        }
+        
+        
+        Scene scene = new Scene(pane);
+        primaryStage.setTitle("Tetris");
+        if(tetris.isGameover){
+          primaryStage.setTitle("Game Over!");
+          pane.add(new Text("Game Over!"),0,0);
+        }
+        primaryStage.setScene(scene);
+        primaryStage.show();
+        
+
+
+        myKeyHandler = new MyKeyHandler();
+        scene.setOnKeyPressed(myKeyHandler);
+        MoveDownWorker worker = new MoveDownWorker();
+        worker.start();
+
+    }
+
+  
+
+    private class MyKeyHandler implements EventHandler<KeyEvent> {
+        @Override
+        public void handle(KeyEvent e) {
+            // TODO handle key events here
+        }
+    }
+
+
+    /* ---------------- DO NOT EDIT BELOW THIS LINE ---------------- */
+    
+    /**
+    * private class GuiTetris.MoveDownWorker
+    * a thread that simulates a downwards keypress every some interval
+    * @author Junshen (Kevin) Chen
+    */
+    private class MoveDownWorker extends Thread{
+
+        private static final int DROP_INTERVAL = 500; // millisecond
+        private int move_down_timer = DROP_INTERVAL; 
+
+        /**
+        * method run
+        * called when the thread begins, decrements the timer every iteration
+        * of a loop, reset the timer and sends a keydown when timer hits 0
+        */
+        @Override
+        public void run(){
+
+            // run forever until returned
+            while (true) {
+                // stop the thread if the game is over
+                if (tetris.isGameover) return; 
+
+                // wait 1ms per iteration
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    break;
+                }
+
+                move_down_timer -= 1;
+                if (move_down_timer <= 0 ) {
+
+                    // simulate one keydown by calling the 
+                    // handler.handle()
+                    myKeyHandler.handle(
+                        new KeyEvent(null, "", "", KeyCode.DOWN, 
+                            false, false, false, false)
+                    );
+
+                    move_down_timer = DROP_INTERVAL;
+                }
+            }
+        }
+    } // end of private class MoveDownWorker
+
+    /**
+     * Cheng Shen Nov. 11th 2018
+     * This method plays the background music
+     */
+    private void startMusic(){
+      try{
+        System.out.println("Playing Music~~~");
+        File mp3 = new File("./Tetris.mp3");
+        Media bgm = new Media(mp3.toURI().toString());
+        MediaPlayer bgmPlayer = new MediaPlayer(bgm);
+        bgmPlayer.setCycleCount(bgmPlayer.INDEFINITE);
+        bgmPlayer.play();
+      }catch (Exception e){
+        System.out.println("Exception playing music");
+      }
+    }
+
+}
